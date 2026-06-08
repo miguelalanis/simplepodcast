@@ -1,0 +1,142 @@
+import { config, collection, singleton, fields } from "@keystatic/core";
+
+export default config({
+  storage: { kind: "local" },
+  ui: {
+    brand: { name: "SimplePodcast CMS" },
+  },
+
+  singletons: {
+    podcast: singleton({
+      label: "Configuración del Podcast",
+      path: "src/content/podcast/config",
+      format: "json",
+      schema: {
+        title: fields.text({
+          label: "Título del Podcast",
+          validation: { isRequired: true },
+        }),
+        description: fields.text({
+          label: "Descripción",
+          multiline: true,
+          validation: { isRequired: true },
+        }),
+        author: fields.text({
+          label: "Autor",
+          validation: { isRequired: true },
+        }),
+        category: fields.text({
+          label: "Categoría iTunes",
+          validation: { isRequired: true },
+        }),
+        link: fields.url({
+          label: "URL oficial del Podcast",
+          validation: { isRequired: true },
+        }),
+        coverImage: fields.image({
+          label: "Imagen de portada",
+          directory: "public/images/podcast",
+          publicPath: "/images/podcast",
+          validation: { isRequired: true },
+        }),
+        rssItemLimit: fields.integer({
+          label: "Límite de ítems en RSS",
+          defaultValue: 50,
+          validation: { isRequired: true, min: 1 },
+        }),
+        homeItemsPerPage: fields.integer({
+          label: "Ítems por página en Home",
+          defaultValue: 10,
+          validation: { isRequired: true, min: 1 },
+        }),
+        appLanguage: fields.select({
+          label: "Idioma de la aplicación",
+          options: [
+            { label: "Español", value: "es" },
+            { label: "English", value: "en" },
+          ],
+          defaultValue: "es",
+        }),
+      },
+    }),
+  },
+
+  collections: {
+    episodes: collection({
+      label: "Episodios",
+      path: "src/content/episodes/*",
+      slugField: "title",
+      format: { contentField: "content" },
+      columns: ["title", "pubDate", "status"],
+      schema: {
+        title: fields.slug({
+          name: {
+            label: "Título del Episodio",
+            validation: { isRequired: true },
+          },
+        }),
+        pubDate: fields.date({
+          label: "Fecha de publicación",
+          validation: { isRequired: true },
+        }),
+        status: fields.select({
+          label: "Estado",
+          options: [
+            { label: "Borrador", value: "draft" },
+            { label: "Publicado", value: "published" },
+            { label: "Programado", value: "scheduled" },
+          ],
+          defaultValue: "draft",
+        }),
+        shortDescription: fields.text({
+          label: "Descripción corta (SEO)",
+          multiline: true,
+          validation: { isRequired: true },
+        }),
+        imageUrl: fields.image({
+          label: "Imagen de carátula",
+          directory: "public/images/episodes",
+          publicPath: "/images/episodes",
+          validation: { isRequired: false },
+        }),
+        fileSize: fields.integer({
+          label: "Tamaño del MP3 (bytes)",
+          validation: { isRequired: false, min: 0 },
+        }),
+        duration: fields.text({
+          label: "Duración (HH:MM:SS)",
+          validation: { isRequired: false },
+        }),
+        audioSource: fields.conditional(
+          fields.select({
+            label: "Origen del audio",
+            options: [
+              { label: "Archivo local", value: "local" },
+              { label: "URL externa (S3/CDN)", value: "s3" },
+            ],
+            defaultValue: "local",
+          }),
+          {
+            local: fields.object({
+              file: fields.file({
+                label: "Archivo MP3",
+                directory: "public/audios",
+                publicPath: "/audios",
+                validation: { isRequired: true },
+              }),
+            }),
+            s3: fields.object({
+              url: fields.url({
+                label: "URL del audio (S3/CDN)",
+                validation: { isRequired: true },
+              }),
+            }),
+          },
+        ),
+        content: fields.mdx({
+          label: "Contenido del episodio",
+        }),
+      },
+    }),
+  },
+});
