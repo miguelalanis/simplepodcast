@@ -83,6 +83,15 @@ export default config({
           ],
           defaultValue: "es",
         }),
+        explicit: fields.select({
+          label: "Contenido explícito (podcast)",
+          options: [
+            { label: "No", value: "no" },
+            { label: "Sí", value: "yes" },
+            { label: "Limpio", value: "clean" },
+          ],
+          defaultValue: "no",
+        }),
         applePodcastId: fields.text({
           label: "Apple Podcasts ID (opcional)",
           description: "Solo el ID numérico, ej. 1234567890",
@@ -125,6 +134,15 @@ export default config({
             { label: "Programado", value: "scheduled" },
           ],
           defaultValue: "draft",
+        }),
+        explicit: fields.select({
+          label: "Contenido explícito (episodio)",
+          options: [
+            { label: "No", value: "no" },
+            { label: "Sí", value: "yes" },
+            { label: "Limpio", value: "clean" },
+          ],
+          defaultValue: "no",
         }),
         shortDescription: fields.text({
           label: "Descripción corta (SEO)",

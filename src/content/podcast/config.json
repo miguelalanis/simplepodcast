@@ -8,6 +8,7 @@
   "rssItemLimit": 50,
   "homeItemsPerPage": 10,
   "appLanguage": "es",
+  "explicit": "no",
   "applePodcastId": "/#",
   "spotifyShowId": "/#",
   "youtubeHandle": "/#"
