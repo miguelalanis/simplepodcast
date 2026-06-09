@@ -24,6 +24,7 @@ const cover = await getEpisodeImage(imageUrl);
 
 const podcastConfig = await getEntry('podcast', 'config');
 const lang = podcastConfig?.data.appLanguage ?? 'es';
+const { applePodcastId, spotifyShowId, youtubeHandle } = podcastConfig?.data ?? {};
 
 const { Content } = await render(episode);
 ---
@@ -47,6 +48,16 @@ const { Content } = await render(episode);
       <span> · {duration}</span>
 
       <audio controls preload="metadata" src={audioUrl} />
+
+      <nav aria-label="Suscribirse al podcast">
+        <h2>Suscribirse</h2>
+        <ul>
+          <li><a href="/feed.xml">RSS</a></li>
+          {applePodcastId && <li><a href={`https://podcasts.apple.com/podcast/id${applePodcastId}`} target="_blank" rel="noopener">Apple Podcasts</a></li>}
+          {spotifyShowId && <li><a href={`https://open.spotify.com/show/${spotifyShowId}`} target="_blank" rel="noopener">Spotify</a></li>}
+          {youtubeHandle && <li><a href={`https://www.youtube.com/@${youtubeHandle}`} target="_blank" rel="noopener">YouTube</a></li>}
+        </ul>
+      </nav>
 
       <section class="content">
         <Content />

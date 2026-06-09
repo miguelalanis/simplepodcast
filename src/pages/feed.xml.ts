@@ -105,10 +105,16 @@ ${items.join('\n')}
   </channel>
 </rss>`;
 
+  const lastModified = episodes.length > 0
+    ? episodes[0].data.pubDate
+    : new Date();
+
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/rss+xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600',
+      'Cache-Control': 'public, max-age=300, s-maxage=300',
+      'Vary': 'Accept-Encoding',
+      'Last-Modified': lastModified.toUTCString(),
     },
   });
 };

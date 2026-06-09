@@ -38,6 +38,9 @@ const podcast = defineCollection({
     rssItemLimit: z.number().int().positive().default(50),
     homeItemsPerPage: z.number().int().positive().default(10),
     appLanguage: z.enum(['es', 'en']).default('es'),
+    applePodcastId: z.string().optional(),
+    spotifyShowId: z.string().optional(),
+    youtubeHandle: z.string().optional(),
   }),
 });
 

@@ -7,5 +7,8 @@
   "coverImage": "/images/podcast/coverImage.png",
   "rssItemLimit": 50,
   "homeItemsPerPage": 10,
-  "appLanguage": "es"
+  "appLanguage": "es",
+  "applePodcastId": "/#",
+  "spotifyShowId": "/#",
+  "youtubeHandle": "/#"
 }

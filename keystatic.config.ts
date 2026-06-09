@@ -83,6 +83,18 @@ export default config({
           ],
           defaultValue: "es",
         }),
+        applePodcastId: fields.text({
+          label: "Apple Podcasts ID (opcional)",
+          description: "Solo el ID numérico, ej. 1234567890",
+        }),
+        spotifyShowId: fields.text({
+          label: "Spotify Show ID (opcional)",
+          description: "Solo el ID alfanumérico después de /show/",
+        }),
+        youtubeHandle: fields.text({
+          label: "YouTube @handle (opcional)",
+          description: "Sin el @, ej. salsatec",
+        }),
       },
     }),
   },

@@ -6,7 +6,7 @@ import { getEpisodeImage } from '../lib/images';
 
 // Configuración global del podcast
 const podcastConfig = await getEntry('podcast', 'config');
-const { title, description, homeItemsPerPage, appLanguage, coverImage } = podcastConfig.data;
+const { title, description, homeItemsPerPage, appLanguage, coverImage, applePodcastId, spotifyShowId, youtubeHandle } = podcastConfig.data;
 
 // Episodios publicados, ordenados por fecha descendente
 const allEpisodes = await getCollection('episodes', ({ data }) => {
@@ -31,6 +31,15 @@ const episodes = allEpisodes
 		<img src={coverImage} alt={title} width="300" />
 		<h1>{title}</h1>
 		<p>{description}</p>
+		<nav aria-label="Suscribirse al podcast">
+			<h2>Suscribirse</h2>
+			<ul>
+				<li><a href="/feed.xml">RSS</a></li>
+				{applePodcastId && <li><a href={`https://podcasts.apple.com/podcast/id${applePodcastId}`} target="_blank" rel="noopener">Apple Podcasts</a></li>}
+				{spotifyShowId && <li><a href={`https://open.spotify.com/show/${spotifyShowId}`} target="_blank" rel="noopener">Spotify</a></li>}
+				{youtubeHandle && <li><a href={`https://www.youtube.com/@${youtubeHandle}`} target="_blank" rel="noopener">YouTube</a></li>}
+			</ul>
+		</nav>
 		<hr />
 		<section>
 			{episodes.length === 0 && <p>No hay episodios publicados aún.</p>}
