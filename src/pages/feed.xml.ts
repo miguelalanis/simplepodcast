@@ -93,7 +93,7 @@ export const GET: APIRoute = async () => {
       <itunes:name>${escapeXml(podcast.author)}</itunes:name>
       <itunes:email>${escapeXml(`${podcast.author.toLowerCase().replace(/\s+/g, '.')}@example.com`)}</itunes:email>
     </itunes:owner>
-    <itunes:explicit>no</itunes:explicit>
+    <itunes:explicit>${escapeXml(podcast.explicit)}</itunes:explicit>
     <itunes:type>episodic</itunes:type>
     <itunes:category text="${escapeXml(podcast.category)}" />
     <itunes:image href="${escapeXml(coverImageUrl)}" />
