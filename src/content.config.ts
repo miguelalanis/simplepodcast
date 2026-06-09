@@ -48,7 +48,7 @@ const episodes = defineCollection({
     pubDate: z.coerce.date(),
     status: z.enum(['draft', 'published', 'scheduled']).default('draft'),
     shortDescription: z.string(),
-    imageUrl: z.string(),
+    imageUrl: z.string().optional(),
     fileSize: z.number().int().nonnegative(),
     duration: z.string().regex(/^\d{2}:\d{2}:\d{2}$/, 'Formato esperado: HH:MM:SS'),
     audioSource: audioSourceSchema,

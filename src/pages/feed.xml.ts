@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection, getEntry } from 'astro:content';
+import { getEpisodeImage } from '../lib/images';
 
 export const prerender = true;
 
@@ -51,16 +52,17 @@ export const GET: APIRoute = async () => {
     : `${baseUrl}${podcast.coverImage}`;
 
   // --- Construir XML ---
-  const items = episodes.map((episode) => {
+  const items = await Promise.all(episodes.map(async (episode) => {
     const { title, pubDate, shortDescription, imageUrl, fileSize, duration, audioSource } = episode.data;
 
     const audioUrl = audioSource.discriminant === 'local'
       ? `${baseUrl}${audioSource.value.file}`
       : audioSource.value.url;
 
-    const episodeImageUrl = imageUrl.startsWith('http')
-      ? imageUrl
-      : `${baseUrl}${imageUrl}`;
+    const resolvedImage = await getEpisodeImage(imageUrl);
+    const episodeImageUrl = resolvedImage.startsWith('http')
+      ? resolvedImage
+      : `${baseUrl}${resolvedImage}`;
 
     const episodeLink = `${baseUrl}/episodes/${episode.id}`;
     const guid = `${baseUrl}/episodes/${episode.id}`;
@@ -77,7 +79,7 @@ export const GET: APIRoute = async () => {
       <itunes:image href="${escapeXml(episodeImageUrl)}" />
       <itunes:explicit>no</itunes:explicit>
     </item>`;
-  });
+  }));
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"

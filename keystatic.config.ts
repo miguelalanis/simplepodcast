@@ -3,7 +3,11 @@ import { config, collection, singleton, fields } from "@keystatic/core";
 export default config({
   storage: { kind: "local" },
   ui: {
-    brand: { name: "SimplePodcast CMS" },
+    brand: { name: "SimplePodcast" },
+    navigation: {
+      Episodios: ["episodes"],
+      Configuración: ["podcast"],
+    },
   },
 
   singletons: {
@@ -102,10 +106,12 @@ export default config({
         fileSize: fields.integer({
           label: "Tamaño del MP3 (bytes)",
           validation: { isRequired: false, min: 0 },
+          defaultValue: 0,
         }),
         duration: fields.text({
           label: "Duración (HH:MM:SS)",
           validation: { isRequired: false },
+          defaultValue: "00:00:00",
         }),
         audioSource: fields.conditional(
           fields.select({

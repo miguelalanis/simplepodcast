@@ -3,7 +3,7 @@
   "description": "Este es mi podcast de prueba para este proyecto que estoy experimentando.",
   "author": "Miguel Alanís",
   "category": "Tecnologia",
-  "link": "https://podcast.miguelalanis.com",
+  "link": "https://simplepodcast.miguelalanismx.workers.dev",
   "coverImage": "/images/podcast/coverImage.png",
   "rssItemLimit": 50,
   "homeItemsPerPage": 10,

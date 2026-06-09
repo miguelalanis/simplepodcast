@@ -2,6 +2,7 @@
 export const prerender = true;
 
 import { getCollection, getEntry, render } from 'astro:content';
+import { getEpisodeImage } from '../../lib/images';
 
 export async function getStaticPaths() {
   const episodes = await getCollection('episodes');
@@ -21,6 +22,7 @@ const { title, pubDate, shortDescription, imageUrl, duration, audioSource } = ep
 const audioUrl = audioSource.discriminant === 'local'
   ? audioSource.value.file
   : audioSource.value.url;
+const cover = await getEpisodeImage(imageUrl);
 
 const podcastConfig = await getEntry('podcast', 'config');
 const lang = podcastConfig?.data.appLanguage ?? 'es';
@@ -39,7 +41,7 @@ const { Content } = await render(episode);
     <a href="/">&larr; Volver</a>
 
     <article>
-      <img src={imageUrl} alt={title} width="600" />
+      <img src={cover} alt={title} width="600" />
       <h1>{title}</h1>
       <time datetime={pubDate.toISOString()}>
         {pubDate.toLocaleDateString(lang, { year: 'numeric', month: 'long', day: 'numeric' })}

@@ -2,10 +2,11 @@
 export const prerender = true;
 
 import { getCollection, getEntry } from 'astro:content';
+import { getEpisodeImage } from '../lib/images';
 
 // Configuración global del podcast
 const podcastConfig = await getEntry('podcast', 'config');
-const { title, description, homeItemsPerPage, appLanguage } = podcastConfig.data;
+const { title, description, homeItemsPerPage, appLanguage, coverImage } = podcastConfig.data;
 
 // Episodios publicados, ordenados por fecha descendente
 const allEpisodes = await getCollection('episodes', ({ data }) => {
@@ -27,30 +28,36 @@ const episodes = allEpisodes
 		<meta name="description" content={description} />
 	</head>
 	<body>
+		<img src={coverImage} alt={title} width="300" />
 		<h1>{title}</h1>
 		<p>{description}</p>
-
+		<hr />
 		<section>
 			{episodes.length === 0 && <p>No hay episodios publicados aún.</p>}
 
-			{episodes.map((episode) => {
+			{episodes.map(async (episode) => {
 				const { title, pubDate, shortDescription, imageUrl, duration, audioSource } = episode.data;
 				const audioUrl = audioSource.discriminant === 'local'
 					? audioSource.value.file
 					: audioSource.value.url;
+				const cover = await getEpisodeImage(imageUrl);
 
 				return (
-					<article>
+					<article style="display: flex; gap: 10px;">
+					<div>
 						<a href={`/episodes/${episode.id}`}>
-							<img src={imageUrl} alt={title} width="300" />
-							<h2>{title}</h2>
+							<img src={cover} alt={title} height="150" />
 						</a>
+					</div>
+					<div>
+							<h2>{title}</h2>
 						<time datetime={pubDate.toISOString()}>
 							{pubDate.toLocaleDateString(appLanguage, { year: 'numeric', month: 'long', day: 'numeric' })}
 						</time>
 						<span> · {duration}</span>
 						<p>{shortDescription}</p>
 						<audio controls preload="none" src={audioUrl} />
+					</div>
 					</article>
 				);
 			})}
