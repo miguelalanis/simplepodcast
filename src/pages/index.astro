@@ -3,71 +3,230 @@ export const prerender = true;
 
 import { getCollection, getEntry } from 'astro:content';
 import { getEpisodeImage } from '../lib/images';
+import BaseLayout from '../layouts/BaseLayout.astro';
 
-// Configuración global del podcast
 const podcastConfig = await getEntry('podcast', 'config');
-const { title, description, homeItemsPerPage, appLanguage, coverImage, applePodcastId, spotifyShowId, youtubeHandle } = podcastConfig.data;
+const {
+  title,
+  description,
+  homeItemsPerPage,
+  appLanguage,
+  coverImage,
+  applePodcastId,
+  spotifyShowId,
+  youtubeHandle,
+} = podcastConfig.data;
 
-// Episodios publicados, ordenados por fecha descendente
-const allEpisodes = await getCollection('episodes', ({ data }) => {
-  return data.status === 'published';
-});
-
+const allEpisodes = await getCollection('episodes', ({ data }) => data.status === 'published');
 const episodes = allEpisodes
   .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
   .slice(0, homeItemsPerPage);
+
+const covers = await Promise.all(
+  episodes.map((episode) => getEpisodeImage(episode.data.imageUrl))
+);
+
+const dateFmt = new Intl.DateTimeFormat(appLanguage === 'es' ? 'es-ES' : 'en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
+const fullCover = coverImage.startsWith('http') ? coverImage : coverImage;
 ---
 
-<html lang={appLanguage}>
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>{title}</title>
-		<meta name="description" content={description} />
-	</head>
-	<body>
-		<img src={coverImage} alt={title} width="300" />
-		<h1>{title}</h1>
-		<p>{description}</p>
-		<nav aria-label="Suscribirse al podcast">
-			<h2>Suscribirse</h2>
-			<ul>
-				<li><a href="/feed.xml">RSS</a></li>
-				{applePodcastId && <li><a href={`https://podcasts.apple.com/podcast/id${applePodcastId}`} target="_blank" rel="noopener">Apple Podcasts</a></li>}
-				{spotifyShowId && <li><a href={`https://open.spotify.com/show/${spotifyShowId}`} target="_blank" rel="noopener">Spotify</a></li>}
-				{youtubeHandle && <li><a href={`https://www.youtube.com/@${youtubeHandle}`} target="_blank" rel="noopener">YouTube</a></li>}
-			</ul>
-		</nav>
-		<hr />
-		<section>
-			{episodes.length === 0 && <p>No hay episodios publicados aún.</p>}
+<BaseLayout title={title} description={description} lang={appLanguage} ogImage={fullCover}>
+  <header class="border-b border-zinc-100 bg-white/80 backdrop-blur sticky top-0 z-10">
+    <div class="mx-auto flex max-w-[860px] items-center justify-between px-6 py-4">
+      <a href="/" class="flex items-center gap-3 group">
+        <img
+          src={coverImage}
+          alt={title}
+          class="h-9 w-9 rounded-md object-cover ring-1 ring-zinc-200"
+        />
+        <span class="font-semibold text-zinc-900 group-hover:text-brand-600 transition">
+          {title}
+        </span>
+      </a>
+      <nav class="flex items-center gap-5 text-sm text-zinc-600">
+        <a href="#episodios" class="hover:text-zinc-900 transition">Episodios</a>
+        <a
+          href="/feed.xml"
+          class="hover:text-zinc-900 transition inline-flex items-center gap-1.5"
+        >
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20A2.18 2.18 0 0 1 4 17.82a2.18 2.18 0 0 1 2.18-2.18M6.18 4v3.04A12.97 12.97 0 0 1 19.04 20h3.04C22.08 11.04 14.96 4 6.18 4m0 6.08v3.04a6.88 6.88 0 0 1 6.88 6.88h3.04A9.93 9.93 0 0 0 6.18 10.12Z"/>
+          </svg>
+          RSS
+        </a>
+      </nav>
+    </div>
+  </header>
 
-			{episodes.map(async (episode) => {
-				const { title, pubDate, shortDescription, imageUrl, duration, audioSource } = episode.data;
-				const audioUrl = audioSource.url;
-				const cover = await getEpisodeImage(imageUrl);
+  <main class="flex-1">
+    <section class="mx-auto max-w-[860px] px-6 pt-16 pb-12 sm:pt-24">
+      <div class="flex flex-col items-center text-center sm:flex-row sm:items-center sm:gap-10 sm:text-left">
+        <img
+          src={coverImage}
+          alt={title}
+          class="h-44 w-44 rounded-2xl object-cover shadow-xl ring-1 ring-zinc-200 sm:h-56 sm:w-56"
+        />
+        <div class="mt-6 sm:mt-0">
+          <p class="text-sm font-semibold uppercase tracking-widest text-brand-600">
+            Podcast
+          </p>
+          <h1 class="mt-2 text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl">
+            {title}
+          </h1>
+          <p class="mt-4 max-w-xl text-lg leading-relaxed text-zinc-600">
+            {description}
+          </p>
+        </div>
+      </div>
 
-				return (
-					<article style="display: flex; gap: 10px;">
-					<div>
-						<a href={`/episodes/${episode.id}`}>
-							<img src={cover} alt={title} height="150" />
-						</a>
-					</div>
-					<div>
-							<h2>{title}</h2>
-						<time datetime={pubDate.toISOString()}>
-							{pubDate.toLocaleDateString(appLanguage, { year: 'numeric', month: 'long', day: 'numeric' })}
-						</time>
-						<span> · {duration}</span>
-						<p>{shortDescription}</p>
-						<audio controls preload="none" src={audioUrl} />
-					</div>
-					</article>
-				);
-			})}
-		</section>
-	</body>
-</html>
+      <div class="mt-8 flex flex-wrap items-center justify-end gap-2">
+        <a
+          href="#episodios"
+          aria-label="Escuchar episodios"
+          title="Escuchar episodios"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-zinc-900 text-white transition hover:bg-zinc-800"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </a>
+        <a
+          href="/feed.xml"
+          aria-label="Suscribirse vía RSS"
+          title="Suscribirse vía RSS"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-zinc-900 text-white transition hover:bg-zinc-800"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20A2.18 2.18 0 0 1 4 17.82a2.18 2.18 0 0 1 2.18-2.18M6.18 4v3.04A12.97 12.97 0 0 1 19.04 20h3.04C22.08 11.04 14.96 4 6.18 4m0 6.08v3.04a6.88 6.88 0 0 1 6.88 6.88h3.04A9.93 9.93 0 0 0 6.18 10.12Z"/>
+          </svg>
+        </a>
+        {applePodcastId && (
+          <a
+            href={`https://podcasts.apple.com/podcast/id${applePodcastId}`}
+            target="_blank"
+            rel="noopener"
+            aria-label="Apple Podcasts"
+            title="Apple Podcasts"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-zinc-900 text-white transition hover:bg-zinc-800"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+            </svg>
+          </a>
+        )}
+        {spotifyShowId && (
+          <a
+            href={`https://open.spotify.com/show/${spotifyShowId}`}
+            target="_blank"
+            rel="noopener"
+            aria-label="Spotify"
+            title="Spotify"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#1DB954] text-white transition hover:opacity-90"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.59 14.41a.63.63 0 0 1-.86.21c-2.36-1.44-5.33-1.77-8.83-.97a.63.63 0 1 1-.28-1.23c3.84-.88 7.13-.5 9.77 1.1.3.18.39.58.2.89zm1.22-2.71a.78.78 0 0 1-1.07.26c-2.7-1.66-6.82-2.14-10.01-1.17a.78.78 0 1 1-.45-1.49c3.65-1.1 8.18-.57 11.27 1.33.37.23.49.72.26 1.07zm.1-2.85c-3.24-1.93-8.59-2.1-11.67-1.16a.94.94 0 1 1-.55-1.79c3.55-1.08 9.43-.88 13.16 1.34a.94.94 0 0 1-.94 1.61z"/>
+            </svg>
+          </a>
+        )}
+        {youtubeHandle && (
+          <a
+            href={`https://www.youtube.com/@${youtubeHandle}`}
+            target="_blank"
+            rel="noopener"
+            aria-label="YouTube"
+            title="YouTube"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#FF0000] text-white transition hover:opacity-90"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/>
+            </svg>
+          </a>
+        )}
+      </div>
+    </section>
+
+    <section id="episodios" class="mx-auto max-w-[860px] px-6 py-16 sm:py-20">
+      <div class="flex items-end justify-between">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
+            Episodios
+          </h2>
+          <p class="mt-1 text-sm text-zinc-500">
+            Los últimos {episodes.length} episodios publicados.
+          </p>
+        </div>
+      </div>
+
+      {episodes.length === 0 ? (
+        <div class="mt-10 rounded-2xl border border-dashed border-zinc-200 p-12 text-center">
+          <p class="text-zinc-500">No hay episodios publicados aún.</p>
+        </div>
+      ) : (
+        <ul class="mt-8 space-y-3">
+          {episodes.map((episode, idx) => {
+            const { title, pubDate, shortDescription, duration, audioSource } = episode.data;
+            const audioUrl = audioSource.url;
+            const cover = covers[idx];
+            return (
+              <li class="group rounded-2xl border border-zinc-100 bg-white p-4 transition hover:border-zinc-200 hover:shadow-sm">
+                <a
+                  href={`/episodes/${episode.id}`}
+                  class="flex items-center gap-4"
+                >
+                  <div class="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100">
+                    <img
+                      src={cover}
+                      alt={title}
+                      class="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2 text-xs text-zinc-500">
+                      <time datetime={pubDate.toISOString()}>
+                        {dateFmt.format(pubDate)}
+                      </time>
+                      <span aria-hidden="true">·</span>
+                      <span class="font-mono">{duration}</span>
+                    </div>
+                    <h3 class="mt-1 truncate text-base font-semibold text-zinc-900 group-hover:text-brand-600 transition">
+                      {title}
+                    </h3>
+                    <p class="mt-1 line-clamp-2 text-sm text-zinc-600">
+                      {shortDescription}
+                    </p>
+                  </div>
+                </a>
+                <audio
+                  controls
+                  preload="none"
+                  src={audioUrl}
+                  class="mt-3 w-full"
+                />
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  </main>
+
+  <footer class="border-t border-zinc-100 bg-zinc-50/50">
+    <div class="mx-auto flex max-w-[860px] flex-col items-center justify-between gap-2 px-6 py-6 sm:flex-row">
+      <p class="text-sm text-zinc-500">
+        © {new Date().getFullYear()} {title}
+      </p>
+      <a
+        href="/feed.xml"
+        class="text-sm text-zinc-500 hover:text-zinc-900 transition"
+      >
+        RSS feed
+      </a>
+    </div>
+  </footer>
+</BaseLayout>

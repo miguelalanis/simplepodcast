@@ -3,6 +3,7 @@ export const prerender = true;
 
 import { getCollection, getEntry, render } from 'astro:content';
 import { getEpisodeImage } from '../../lib/images';
+import BaseLayout from '../../layouts/BaseLayout.astro';
 
 export async function getStaticPaths() {
   const episodes = await getCollection('episodes');
@@ -18,50 +19,188 @@ if (!episode) {
   return Astro.redirect('/404');
 }
 
-const { title, pubDate, shortDescription, imageUrl, duration, audioSource } = episode.data;
+const { title, pubDate, shortDescription, duration, audioSource } = episode.data;
 const audioUrl = audioSource.url;
-const cover = await getEpisodeImage(imageUrl);
+const cover = await getEpisodeImage(episode.data.imageUrl);
 
 const podcastConfig = await getEntry('podcast', 'config');
 const lang = podcastConfig?.data.appLanguage ?? 'es';
-const { applePodcastId, spotifyShowId, youtubeHandle } = podcastConfig?.data ?? {};
+const {
+  title: podcastTitle,
+  applePodcastId,
+  spotifyShowId,
+  youtubeHandle,
+  coverImage: podcastCover,
+} = podcastConfig?.data ?? {};
+
+const dateFmt = new Intl.DateTimeFormat(lang === 'es' ? 'es-ES' : 'en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
 
 const { Content } = await render(episode);
 ---
 
-<html lang={lang}>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>{title}</title>
-    <meta name="description" content={shortDescription} />
-  </head>
-  <body>
-    <a href="/">&larr; Volver</a>
+<BaseLayout
+  title={`${title} · ${podcastTitle}`}
+  description={shortDescription}
+  lang={lang}
+  ogImage={cover}
+  type="article"
+>
+  <header class="border-b border-zinc-100 bg-white/80 backdrop-blur sticky top-0 z-10">
+    <div class="mx-auto flex max-w-[860px] items-center justify-between px-6 py-4">
+      <a href="/" class="flex items-center gap-3 group">
+        <img
+          src={podcastCover}
+          alt={podcastTitle}
+          class="h-9 w-9 rounded-md object-cover ring-1 ring-zinc-200"
+        />
+        <span class="font-semibold text-zinc-900 group-hover:text-brand-600 transition">
+          {podcastTitle}
+        </span>
+      </a>
+      <a
+        href="/"
+        class="text-sm text-zinc-600 hover:text-zinc-900 transition inline-flex items-center gap-1.5"
+      >
+        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+        Volver
+      </a>
+    </div>
+  </header>
 
-    <article>
-      <img src={cover} alt={title} width="600" />
-      <h1>{title}</h1>
-      <time datetime={pubDate.toISOString()}>
-        {pubDate.toLocaleDateString(lang, { year: 'numeric', month: 'long', day: 'numeric' })}
-      </time>
-      <span> · {duration}</span>
+  <main class="flex-1">
+    <article class="mx-auto max-w-[860px] px-6 py-12 sm:py-16">
+      <div class="mb-8 flex items-center gap-3 text-sm text-zinc-500">
+        <a href="/" class="hover:text-zinc-900 transition">Episodios</a>
+        <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m9 18 6-6-6-6"/>
+        </svg>
+        <span class="text-zinc-700 truncate">{title}</span>
+      </div>
 
-      <audio controls preload="metadata" src={audioUrl} />
+      <div class="flex justify-center">
+        <img
+          src={cover}
+          alt={title}
+          width="224"
+          height="224"
+          loading="eager"
+          class="h-56 w-56 rounded-2xl object-cover shadow-xl ring-1 ring-zinc-200"
+        />
+      </div>
 
-      <nav aria-label="Suscribirse al podcast">
-        <h2>Suscribirse</h2>
-        <ul>
-          <li><a href="/feed.xml">RSS</a></li>
-          {applePodcastId && <li><a href={`https://podcasts.apple.com/podcast/id${applePodcastId}`} target="_blank" rel="noopener">Apple Podcasts</a></li>}
-          {spotifyShowId && <li><a href={`https://open.spotify.com/show/${spotifyShowId}`} target="_blank" rel="noopener">Spotify</a></li>}
-          {youtubeHandle && <li><a href={`https://www.youtube.com/@${youtubeHandle}`} target="_blank" rel="noopener">YouTube</a></li>}
-        </ul>
-      </nav>
+      <header class="mt-8 text-center">
+        <div class="flex items-center justify-center gap-2 text-xs font-medium text-zinc-500">
+          <time datetime={pubDate.toISOString()}>
+            {dateFmt.format(pubDate)}
+          </time>
+          <span aria-hidden="true">·</span>
+          <span class="font-mono">{duration}</span>
+        </div>
+        <h1 class="mt-3 text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl sm:leading-tight">
+          {title}
+        </h1>
+        <p class="mt-4 text-lg leading-relaxed text-zinc-600">
+          {shortDescription}
+        </p>
+      </header>
 
-      <section class="content">
+      <div class="mt-8 rounded-2xl border border-zinc-200 bg-white p-4">
+        <audio
+          controls
+          preload="metadata"
+          src={audioUrl}
+          class="w-full"
+        />
+      </div>
+
+      <div class="prose prose-zinc mt-10 max-w-none
+                  prose-headings:font-semibold prose-headings:tracking-tight
+                  prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl
+                  prose-a:text-brand-600 prose-a:no-underline hover:prose-a:underline
+                  prose-code:rounded prose-code:bg-zinc-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm
+                  prose-code:before:content-none prose-code:after:content-none
+                  prose-pre:bg-zinc-900 prose-pre:text-zinc-100
+                  prose-img:rounded-xl">
         <Content />
-      </section>
+      </div>
+
+      <nav
+        aria-label="Suscribirse al podcast"
+        class="mt-12 flex flex-wrap items-center justify-center gap-2"
+      >
+        <a
+          href="/feed.xml"
+          aria-label="Suscribirse vía RSS"
+          title="Suscribirse vía RSS"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-zinc-900 text-white transition hover:bg-zinc-800"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20A2.18 2.18 0 0 1 4 17.82a2.18 2.18 0 0 1 2.18-2.18M6.18 4v3.04A12.97 12.97 0 0 1 19.04 20h3.04C22.08 11.04 14.96 4 6.18 4m0 6.08v3.04a6.88 6.88 0 0 1 6.88 6.88h3.04A9.93 9.93 0 0 0 6.18 10.12Z"/>
+          </svg>
+        </a>
+        {applePodcastId && (
+          <a
+            href={`https://podcasts.apple.com/podcast/id${applePodcastId}`}
+            target="_blank"
+            rel="noopener"
+            aria-label="Apple Podcasts"
+            title="Apple Podcasts"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-zinc-900 text-white transition hover:bg-zinc-800"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+            </svg>
+          </a>
+        )}
+        {spotifyShowId && (
+          <a
+            href={`https://open.spotify.com/show/${spotifyShowId}`}
+            target="_blank"
+            rel="noopener"
+            aria-label="Spotify"
+            title="Spotify"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#1DB954] text-white transition hover:opacity-90"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.59 14.41a.63.63 0 0 1-.86.21c-2.36-1.44-5.33-1.77-8.83-.97a.63.63 0 1 1-.28-1.23c3.84-.88 7.13-.5 9.77 1.1.3.18.39.58.2.89zm1.22-2.71a.78.78 0 0 1-1.07.26c-2.7-1.66-6.82-2.14-10.01-1.17a.78.78 0 1 1-.45-1.49c3.65-1.1 8.18-.57 11.27 1.33.37.23.49.72.26 1.07zm.1-2.85c-3.24-1.93-8.59-2.1-11.67-1.16a.94.94 0 1 1-.55-1.79c3.55-1.08 9.43-.88 13.16 1.34a.94.94 0 0 1-.94 1.61z"/>
+            </svg>
+          </a>
+        )}
+        {youtubeHandle && (
+          <a
+            href={`https://www.youtube.com/@${youtubeHandle}`}
+            target="_blank"
+            rel="noopener"
+            aria-label="YouTube"
+            title="YouTube"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#FF0000] text-white transition hover:opacity-90"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/>
+            </svg>
+          </a>
+        )}
+      </nav>
     </article>
-  </body>
-</html>
+  </main>
+
+  <footer class="border-t border-zinc-100 bg-zinc-50/50">
+    <div class="mx-auto flex max-w-[860px] flex-col items-center justify-between gap-2 px-6 py-6 sm:flex-row">
+      <p class="text-sm text-zinc-500">
+        © {new Date().getFullYear()} {podcastTitle}
+      </p>
+      <a
+        href="/feed.xml"
+        class="text-sm text-zinc-500 hover:text-zinc-900 transition"
+      >
+        RSS feed
+      </a>
+    </div>
+  </footer>
+</BaseLayout>
