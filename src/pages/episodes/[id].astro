@@ -4,6 +4,7 @@ export const prerender = true;
 import { getCollection, getEntry, render } from 'astro:content';
 import { getEpisodeImage } from '../../lib/images';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import AudioPlayer from '../../components/AudioPlayer';
 
 export async function getStaticPaths() {
   const episodes = await getCollection('episodes');
@@ -110,12 +111,12 @@ const { Content } = await render(episode);
         </p>
       </header>
 
-      <div class="mt-8 rounded-2xl border border-zinc-200 bg-white p-4">
-        <audio
-          controls
-          preload="metadata"
+      <div class="mt-8 rounded-2xl bg-white p-4">
+        <AudioPlayer
+          client:load
           src={audioUrl}
-          class="w-full"
+          episodeId={episode.id}
+          duration={duration}
         />
       </div>
 

@@ -4,6 +4,7 @@ export const prerender = true;
 import { getCollection, getEntry } from 'astro:content';
 import { getEpisodeImage } from '../lib/images';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import AudioPlayer from '../components/AudioPlayer';
 
 const podcastConfig = await getEntry('podcast', 'config');
 const {
@@ -202,11 +203,11 @@ const fullCover = coverImage.startsWith('http') ? coverImage : coverImage;
                     </p>
                   </div>
                 </a>
-                <audio
-                  controls
-                  preload="none"
+                <AudioPlayer
+                  client:load
                   src={audioUrl}
-                  class="mt-3 w-full"
+                  episodeId={episode.id}
+                  duration={duration}
                 />
               </li>
             );

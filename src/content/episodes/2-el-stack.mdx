@@ -1,0 +1,38 @@
+---
+title: El stack detrás de SimplePodcast
+pubDate: 2026-04-28
+status: published
+explicit: 'false'
+shortDescription: >-
+  Un recorrido por las decisiones técnicas del proyecto — por qué elegí Astro,
+  Keystatic, Tailwind v4 y Cloudflare Workers, y qué trade-offs me llevé.
+fileSize: 4810552
+duration: '00:01:51'
+audioSource:
+  url: https://podcast.miguelalanis.com/prettyjohn1-podcast-486808.mp3
+---
+En este episodio hago un recorrido por el stack técnico del proyecto y las decisiones que tomé al armarlo. La idea es mostrar que "simple" no significa "简陋" — significa elegir bien cada pieza.
+
+**Frontend: Astro 6**
+
+Necesitaba un sitio rápido, server-rendered, que pueda crecer sin agregar un framework pesado. Astro me dio justo eso: páginas `.astro` con islands solo donde hace falta interactividad. El output es `server` con `@astrojs/node` para deployarlo en cualquier plataforma.
+
+**CMS: Keystatic**
+
+Quería editar contenido sin tocar el repo. Keystatic escribe directo a archivos Markdown/JSONX — el commit queda en el log de Git, lo cual me da historial gratis. Para un proyecto unipersonal es el balance justo entre "panel de admin" y "datos en el repo".
+
+**Estilos: Tailwind v4**
+
+Lo elegí por la velocidad de iteración. La versión 4 simplificó el setup: un plugin de Vite y listo, sin `tailwind.config.js` ni directivas complicadas.
+
+**Deploy: Cloudflare Workers**
+
+El sitio pesa poco, los MP3 viven en otro hosting, así que Workers me da latencia baja en el edge sin pagar de más.
+
+**Trade-offs**
+
+* No hay base de datos (todavía) — todo vive en archivos. Aceptable hoy, problemático si el podcast crece.
+* El feed RSS no soporta byte-range nativo — pendiente resolver cuando integre estadísticas.
+* No hay tests automatizados. El proyecto es chico, pero es deuda técnica que voy a pagar antes de sumar features.
+
+En el próximo episodio hablo del lanzamiento de la beta y qué dejé fuera deliberadamente.

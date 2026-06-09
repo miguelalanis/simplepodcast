@@ -1,6 +1,6 @@
 {
-  "title": "Mi podcast",
-  "description": "Este es mi podcast de prueba para este proyecto que estoy experimentando.",
+  "title": "SimplePodcast",
+  "description": "Un podcast sobre crear productos digitales minimalistas: tooling, decisiones técnicas y las historias detrás del código.",
   "author": "Miguel Alanís",
   "category": "Technology",
   "link": "https://simplepodcast.miguelalanismx.workers.dev",
