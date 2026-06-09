@@ -37,9 +37,7 @@ const episodes = allEpisodes
 
 			{episodes.map(async (episode) => {
 				const { title, pubDate, shortDescription, imageUrl, duration, audioSource } = episode.data;
-				const audioUrl = audioSource.discriminant === 'local'
-					? audioSource.value.file
-					: audioSource.value.url;
+				const audioUrl = audioSource.url;
 				const cover = await getEpisodeImage(imageUrl);
 
 				return (

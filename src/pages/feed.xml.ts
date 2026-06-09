@@ -54,10 +54,7 @@ export const GET: APIRoute = async () => {
   // --- Construir XML ---
   const items = await Promise.all(episodes.map(async (episode) => {
     const { title, pubDate, shortDescription, imageUrl, fileSize, duration, audioSource } = episode.data;
-
-    const audioUrl = audioSource.discriminant === 'local'
-      ? `${baseUrl}${audioSource.value.file}`
-      : audioSource.value.url;
+    const audioUrl = audioSource.url;
 
     const resolvedImage = await getEpisodeImage(imageUrl);
     const episodeImageUrl = resolvedImage.startsWith('http')

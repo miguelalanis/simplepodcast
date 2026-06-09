@@ -21,24 +21,6 @@ const podcast = defineCollection({
 });
 
 // ---------------------------------------------------------------------------
-// Schema condicional para el origen del audio
-// ---------------------------------------------------------------------------
-const audioSourceSchema = z.discriminatedUnion('discriminant', [
-  z.object({
-    discriminant: z.literal('local'),
-    value: z.object({
-      file: z.string(),
-    }),
-  }),
-  z.object({
-    discriminant: z.literal('s3'),
-    value: z.object({
-      url: z.url(),
-    }),
-  }),
-]);
-
-// ---------------------------------------------------------------------------
 // Colección: Episodios
 // ---------------------------------------------------------------------------
 const episodes = defineCollection({
@@ -51,7 +33,9 @@ const episodes = defineCollection({
     imageUrl: z.string().optional(),
     fileSize: z.number().int().nonnegative(),
     duration: z.string().regex(/^\d{2}:\d{2}:\d{2}$/, 'Formato esperado: HH:MM:SS'),
-    audioSource: audioSourceSchema,
+    audioSource: z.object({
+      url: z.url(),
+    }),
   }),
 });
 

@@ -113,32 +113,12 @@ export default config({
           validation: { isRequired: false },
           defaultValue: "00:00:00",
         }),
-        audioSource: fields.conditional(
-          fields.select({
-            label: "Origen del audio",
-            options: [
-              { label: "Archivo local", value: "local" },
-              { label: "URL externa (S3/CDN)", value: "s3" },
-            ],
-            defaultValue: "local",
+        audioSource: fields.object({
+          url: fields.url({
+            label: "URL del MP3 (S3/CDN)",
+            validation: { isRequired: true },
           }),
-          {
-            local: fields.object({
-              file: fields.file({
-                label: "Archivo MP3",
-                directory: "public/audios",
-                publicPath: "/audios",
-                validation: { isRequired: true },
-              }),
-            }),
-            s3: fields.object({
-              url: fields.url({
-                label: "URL del audio (S3/CDN)",
-                validation: { isRequired: true },
-              }),
-            }),
-          },
-        ),
+        }),
         content: fields.mdx({
           label: "Contenido del episodio",
         }),
